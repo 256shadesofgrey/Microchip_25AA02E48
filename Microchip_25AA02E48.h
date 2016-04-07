@@ -32,11 +32,15 @@ typedef struct _EEPROM25AA02_Obj_
 	SPI_Handle       spiHandle;                  //!< the handle for the serial peripheral interface
 	GPIO_Handle      gpioHandle;                 //!< the gpio handle
 	GPIO_Number_e    gpio_CS;              	     //!< the gpio number that is connected to the 25AA02 CS SPI pin
-} MCP2515_Obj;
+} EEPROM25AA02_Obj;
 
 typedef struct _EEPROM25AA02_Obj_ *EEPROM25AA02_Handle;
 
-void EEPROM25AA02_init(EEPROM25AA02_Handle handle, uint8_t cs);
+EEPROM25AA02_Handle EEPROM25AA02_init(void *pMemory, const size_t numBytes);
+void EEPROM25AA02_setSpiHandle(EEPROM25AA02_Handle handle, SPI_Handle spiHandle);
+void EEPROM25AA02_setGpioHandle(EEPROM25AA02_Handle handle, GPIO_Handle gpioHandle);
+void EEPROM25AA02_setGpio_CS(EEPROM25AA02_Handle handle, GPIO_Number_e gpio_CS);
+uint16_t EEPROM25AA02_spiTransferByte(MCP2515_Handle handle, const uint16_t data);
 uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle);
 uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr);
 uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len);

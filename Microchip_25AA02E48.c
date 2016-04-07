@@ -6,11 +6,64 @@
 #define WRITE_STATUS_instruction 0b00000001
 #define WREN 6
 
-void EEPROM25AA02_init(EEPROM25AA02_Handle handle, uint8_t cs) {
-	_cs = cs;
-	pinMode(_cs, OUTPUT);
-	digitalWrite(_cs, HIGH);
+EEPROM25AA02_Handle EEPROM25AA02_init(void *pMemory, const size_t numBytes) {
+	EEPROM25AA02_Handle handle;
+
+	if(numBytes < sizeof(EEPROM25AA02_Obj)){
+		return((EEPROM25AA02_Handle)NULL);
+	}
+
+	// assign the handle
+	handle = (EEPROM25AA02_Handle)pMemory;
+
+	return(handle);
 }
+
+void EEPROM25AA02_setSpiHandle(EEPROM25AA02_Handle handle, SPI_Handle spiHandle){
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+
+	// initialize the serial peripheral interface object
+	obj->spiHandle = spiHandle;
+
+	return;
+}
+
+
+void EEPROM25AA02_setGpioHandle(EEPROM25AA02_Handle handle, GPIO_Handle gpioHandle){
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+
+	// initialize the gpio interface object
+	obj->gpioHandle = gpioHandle;
+
+	return;
+}
+
+
+void EEPROM25AA02_setGpio_CS(EEPROM25AA02_Handle handle, GPIO_Number_e gpio_CS){
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+
+	// set CS pin
+	obj->gpio_CS = gpio_CS;
+
+	return;
+}
+
+uint16_t EEPROM25AA02_spiTransferByte(MCP2515_Handle handle, const uint16_t data){
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	volatile uint16_t ReadByte;
+
+	SPI_write(obj->spiHandle, (data & 0xFF) << 8);
+
+	while(1){
+	    if(SPI_getIntFlagStatus(obj->spiHandle)==SPI_IntFlagStatus_Completed){
+			ReadByte= SPI_read(obj->spiHandle);
+			break;
+		}
+	}
+	return(ReadByte);
+}
+
+//#########################################################################################
 
 uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle) {
   uint8_t result = 0;   // result to return
