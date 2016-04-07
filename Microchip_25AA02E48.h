@@ -21,22 +21,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef MICROCHIP_25AA02E48_H
 #define MICROCHIP_25AA02E48_H
 
-#include "Arduino.h"
-#include <../SPI/SPI.h>
+#include "spi.h"
 
-class Microchip_25AA02E48 {
-public:
-	Microchip_25AA02E48(uint8_t cs);
-	uint8_t readStatus();
-	uint8_t readRegister(uint8_t addr);
-	uint8_t readRegister(uint8_t addr, uint8_t *buffer, int len);
-	void getEUI48(uint8_t *buffer);
-	void getEUI64(uint8_t *buffer);
-	void writeRegister(uint8_t addr, uint8_t value);
-	void writeRegister(uint8_t addr, uint8_t *buffer, int len);
-	
-private:
-	uint8_t _cs;
-};
+#ifndef uint8_t
+#define uint8_t uint_least8_t
+#endif
+
+typedef struct _EEPROM25AA02_Obj_
+{
+	SPI_Handle       spiHandle;                  //!< the handle for the serial peripheral interface
+	GPIO_Handle      gpioHandle;                 //!< the gpio handle
+	GPIO_Number_e    gpio_CS;              	     //!< the gpio number that is connected to the 25AA02 CS SPI pin
+} MCP2515_Obj;
+
+typedef struct _EEPROM25AA02_Obj_ *EEPROM25AA02_Handle;
+
+void EEPROM25AA02_init(EEPROM25AA02_Handle handle, uint8_t cs);
+uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle);
+uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr);
+uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len);
+void EEPROM25AA02_getEUI48(EEPROM25AA02_Handle handle, uint8_t *buffer);
+void EEPROM25AA02_getEUI64(EEPROM25AA02_Handle handle, uint8_t *buffer);
+void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t value);
+void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len);
 
 #endif // MICROCHIP_25AA02E48_H

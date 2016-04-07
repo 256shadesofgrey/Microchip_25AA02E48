@@ -6,13 +6,13 @@
 #define WRITE_STATUS_instruction 0b00000001
 #define WREN 6
 
-Microchip_25AA02E48::Microchip_25AA02E48(uint8_t cs) {
+void EEPROM25AA02_init(EEPROM25AA02_Handle handle, uint8_t cs) {
 	_cs = cs;
 	pinMode(_cs, OUTPUT);
 	digitalWrite(_cs, HIGH);
 }
 
-uint8_t Microchip_25AA02E48::readStatus() {
+uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle) {
   uint8_t result = 0;   // result to return
   
   // take the chip select low to select the device:
@@ -26,7 +26,7 @@ uint8_t Microchip_25AA02E48::readStatus() {
 }
 
 
-uint8_t Microchip_25AA02E48::readRegister(uint8_t addr) {
+uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr) {
   uint8_t result = 0;   // result to return
   // take the chip select low to select the device:
   digitalWrite(_cs, LOW);
@@ -43,7 +43,7 @@ uint8_t Microchip_25AA02E48::readRegister(uint8_t addr) {
   return result;
 }
 
-uint8_t Microchip_25AA02E48::readRegister(uint8_t addr, uint8_t *buffer, int len) {
+uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
   if(buffer == 0)
     return 1;
   int index = 0;
@@ -67,7 +67,7 @@ uint8_t Microchip_25AA02E48::readRegister(uint8_t addr, uint8_t *buffer, int len
 }
 
 
-void Microchip_25AA02E48::getEUI48(uint8_t *buffer) {
+void EEPROM25AA02_getEUI48(EEPROM25AA02_Handle handle, uint8_t *buffer) {
 	// take the chip select low to select the device:
 	digitalWrite(_cs, LOW);
 	SPI.transfer(READ_instruction);
@@ -81,7 +81,7 @@ void Microchip_25AA02E48::getEUI48(uint8_t *buffer) {
 	digitalWrite(_cs, HIGH);
 }
 
-void Microchip_25AA02E48::getEUI64(uint8_t *buffer) {
+void EEPROM25AA02_getEUI64(EEPROM25AA02_Handle handle, uint8_t *buffer) {
 	// take the chip select low to select the device:
 	digitalWrite(_cs, LOW);
 	SPI.transfer(READ_instruction);
@@ -100,7 +100,7 @@ void Microchip_25AA02E48::getEUI64(uint8_t *buffer) {
 	digitalWrite(_cs, HIGH);
 }
 
-void Microchip_25AA02E48::writeRegister(uint8_t addr, uint8_t value) {
+void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t value) {
   // take the chip select low to select the device:
   digitalWrite(_cs, LOW);
   SPI.transfer(WREN);
@@ -117,7 +117,7 @@ void Microchip_25AA02E48::writeRegister(uint8_t addr, uint8_t value) {
 }
 
 
-void Microchip_25AA02E48::writeRegister(uint8_t addr, uint8_t *buffer, int len) {
+void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
   int index = 0;
   // take the chip select low to select the device:
   digitalWrite(_cs, LOW);
