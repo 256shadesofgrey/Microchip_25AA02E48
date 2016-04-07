@@ -48,6 +48,18 @@ void EEPROM25AA02_setGpio_CS(EEPROM25AA02_Handle handle, GPIO_Number_e gpio_CS){
 	return;
 }
 
+EEPROM25AA02_Handle EEPROM25AA02_begin(void *pMemory, const size_t numBytes, GPIO_Number_e gpio_CS, GPIO_Handle gpioHandle, SPI_Handle spiHandle){
+	EEPROM25AA02_Handle handle = EEPROM25AA02_init(pMemory, numBytes);
+
+	if(handle != NULL){
+		EEPROM25AA02_setSpiHandle(handle, spiHandle);
+		EEPROM25AA02_setGpioHandle(handle, gpioHandle);
+		EEPROM25AA02_setGpio_CS(handle, gpio_CS);
+	}
+
+	return handle;
+}
+
 uint16_t EEPROM25AA02_spiTransferByte(EEPROM25AA02_Handle handle, const uint16_t data){
 	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
 	volatile uint16_t ReadByte;

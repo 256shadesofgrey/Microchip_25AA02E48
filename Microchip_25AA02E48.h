@@ -41,6 +41,8 @@ EEPROM25AA02_Handle EEPROM25AA02_init(void *pMemory, const size_t numBytes);
 void EEPROM25AA02_setSpiHandle(EEPROM25AA02_Handle handle, SPI_Handle spiHandle);
 void EEPROM25AA02_setGpioHandle(EEPROM25AA02_Handle handle, GPIO_Handle gpioHandle);
 void EEPROM25AA02_setGpio_CS(EEPROM25AA02_Handle handle, GPIO_Number_e gpio_CS);
+EEPROM25AA02_Handle EEPROM25AA02_begin(void *pMemory, const size_t numBytes, GPIO_Number_e gpio_CS, GPIO_Handle gpioHandle, SPI_Handle spiHandle);
+
 uint16_t EEPROM25AA02_spiTransferByte(EEPROM25AA02_Handle handle, const uint16_t data);
 uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle);
 uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr);
