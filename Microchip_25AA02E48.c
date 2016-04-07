@@ -48,7 +48,7 @@ void EEPROM25AA02_setGpio_CS(EEPROM25AA02_Handle handle, GPIO_Number_e gpio_CS){
 	return;
 }
 
-uint16_t EEPROM25AA02_spiTransferByte(MCP2515_Handle handle, const uint16_t data){
+uint16_t EEPROM25AA02_spiTransferByte(EEPROM25AA02_Handle handle, const uint16_t data){
 	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
 	volatile uint16_t ReadByte;
 
@@ -56,7 +56,7 @@ uint16_t EEPROM25AA02_spiTransferByte(MCP2515_Handle handle, const uint16_t data
 
 	while(1){
 	    if(SPI_getIntFlagStatus(obj->spiHandle)==SPI_IntFlagStatus_Completed){
-			ReadByte= SPI_read(obj->spiHandle);
+			ReadByte = SPI_read(obj->spiHandle);
 			break;
 		}
 	}
@@ -66,127 +66,182 @@ uint16_t EEPROM25AA02_spiTransferByte(MCP2515_Handle handle, const uint16_t data
 //#########################################################################################
 
 uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle) {
-  uint8_t result = 0;   // result to return
-  
-  // take the chip select low to select the device:
-  digitalWrite(_cs, LOW);
-  
-  SPI.transfer(READ_STATUS_instruction);
-  result = SPI.transfer(0x00);
-  digitalWrite(_cs, HIGH);
-  
-  return result;
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
+
+	uint8_t result = 0;   // result to return
+
+	// take the chip select low to select the device:
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+
+	EEPROM25AA02_spiTransferByte(handle, READ_STATUS_instruction);
+	result = EEPROM25AA02_spiTransferByte(handle, 0x00);
+
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
+
+	return result;
 }
 
 
 uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr) {
-  uint8_t result = 0;   // result to return
-  // take the chip select low to select the device:
-  digitalWrite(_cs, LOW);
-  SPI.transfer(READ_instruction);
-  // send the device the register you want to read:
-  SPI.transfer(addr);
-  // send a value of 0 to read the first byte returned:
-  result = SPI.transfer(0x00);
-  
-  // take the chip select high to de-select:
-  digitalWrite(_cs, HIGH);
-  
-  // return the result:
-  return result;
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
+
+	uint8_t result = 0;   // result to return
+	// take the chip select low to select the device:
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+	EEPROM25AA02_spiTransferByte(handle, READ_instruction);
+	// send the device the register you want to read:
+	EEPROM25AA02_spiTransferByte(handle, addr);
+	// send a value of 0 to read the first byte returned:
+	result = EEPROM25AA02_spiTransferByte(handle, 0x00);
+
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	// take the chip select high to de-select:
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
+
+	// return the result:
+	return result;
 }
 
-uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
-  if(buffer == 0)
-    return 1;
-  int index = 0;
-  uint8_t result = 0;   // result to return
-  // take the chip select low to select the device:
-  digitalWrite(_cs, LOW);
-  SPI.transfer(READ_instruction);
-  // send the device the register you want to read:
-  SPI.transfer(addr);
-  while(len > index)
-  {
-    result = SPI.transfer(0x00);
-    buffer[index] = result;
-    index++;
-  }
-  
-  digitalWrite(_cs, HIGH);
-  
-  // return the result:
-  return 0;
+uint8_t EEPROM25AA02_readRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
+
+	if(buffer == 0){
+		return 1;
+	}
+	int index = 0;
+	uint8_t result = 0;   // result to return
+	// take the chip select low to select the device:
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+	EEPROM25AA02_spiTransferByte(handle, READ_instruction);
+	// send the device the register you want to read:
+	EEPROM25AA02_spiTransferByte(handle, addr);
+	while(len > index){
+		result = EEPROM25AA02_spiTransferByte(handle, 0x00);
+		buffer[index] = result;
+		index++;
+	}
+
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
+
+	// return the result:
+	return 0;
 }
 
 
 void EEPROM25AA02_getEUI48(EEPROM25AA02_Handle handle, uint8_t *buffer) {
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
+	uint8_t i = 0;
+
 	// take the chip select low to select the device:
-	digitalWrite(_cs, LOW);
-	SPI.transfer(READ_instruction);
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+	EEPROM25AA02_spiTransferByte(handle, READ_instruction);
 	// send the device the register you want to read:
-	SPI.transfer(0xFA);
-	for(uint8_t i = 0; i < 6; i++)
-	{
-		buffer[i] = SPI.transfer(0x00);
+	EEPROM25AA02_spiTransferByte(handle, 0xFA);
+	for(i = 0; i < 6; i++){
+		buffer[i] = EEPROM25AA02_spiTransferByte(handle, 0x00);
 	}
 	
-	digitalWrite(_cs, HIGH);
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
 }
 
 void EEPROM25AA02_getEUI64(EEPROM25AA02_Handle handle, uint8_t *buffer) {
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
+	uint8_t i = 0;
+
 	// take the chip select low to select the device:
-	digitalWrite(_cs, LOW);
-	SPI.transfer(READ_instruction);
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+	EEPROM25AA02_spiTransferByte(handle, READ_instruction);
 	// send the device the register you want to read:
-	SPI.transfer(0xFA);
-	for(uint8_t i = 0; i < 8; i++)
-	{
-		if(i == 3)
+	EEPROM25AA02_spiTransferByte(handle, 0xFA);
+	for(i = 0; i < 8; i++){
+		if(i == 3){
 			buffer[i] = 0xFF;
-		else if(i == 4)
+		}else if(i == 4){
 			buffer[i] = 0xFE;
-		else
-			buffer[i] = SPI.transfer(0x00);
+		}else{
+			buffer[i] = EEPROM25AA02_spiTransferByte(handle, 0x00);
+		}
 	}
 	
-	digitalWrite(_cs, HIGH);
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
 }
 
 void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t value) {
-  // take the chip select low to select the device:
-  digitalWrite(_cs, LOW);
-  SPI.transfer(WREN);
-  digitalWrite(_cs, HIGH);
-  
-  digitalWrite(_cs, LOW);
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
 
-  SPI.transfer(WRITE_instruction);
-  SPI.transfer(addr); //Send register location
-  SPI.transfer(value);  //Send value to record into register
+	// take the chip select low to select the device:
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+	EEPROM25AA02_spiTransferByte(handle, WREN);
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
 
-  // take the chip select high to de-select:
-  digitalWrite(_cs, HIGH);
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+
+	EEPROM25AA02_spiTransferByte(handle, WRITE_instruction);
+	EEPROM25AA02_spiTransferByte(handle, addr); //Send register location
+	EEPROM25AA02_spiTransferByte(handle, value);  //Send value to record into register
+
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	// take the chip select high to de-select:
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
 }
 
 
-void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
-  int index = 0;
-  // take the chip select low to select the device:
-  digitalWrite(_cs, LOW);
-  SPI.transfer(WREN);
-  digitalWrite(_cs, HIGH);
+void EEPROM25AA02_writeRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
 
-  digitalWrite(_cs, LOW);
+	int index = 0;
+	// take the chip select low to select the device:
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+	EEPROM25AA02_spiTransferByte(handle, WREN);
 
-  SPI.transfer(WRITE_instruction);
-  SPI.transfer(addr); //Send register location
-  while(len > index)
-  {
-    SPI.transfer(buffer[index]);
-    index++;
-  }
+//	for(n = 0; n < 0xf; n++){            //OK
+//		asm(" NOP");
+//	}
+//
+//	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
+//
+//	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
 
-  // take the chip select high to de-select:
-  digitalWrite(_cs, HIGH);
+	EEPROM25AA02_spiTransferByte(handle, WRITE_instruction);
+	EEPROM25AA02_spiTransferByte(handle, addr); //Send register location
+	while(len > index){
+		EEPROM25AA02_spiTransferByte(handle, buffer[index]);
+		index++;
+	}
+
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	// take the chip select high to de-select:
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
 }
