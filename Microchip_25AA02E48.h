@@ -1,7 +1,7 @@
 /*
 Microchip 25AA02E48 library
 
-Copyright (C) 2012 Akafugu Corporation
+Copyright (C) 2016 Dmitri Ranfft
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
