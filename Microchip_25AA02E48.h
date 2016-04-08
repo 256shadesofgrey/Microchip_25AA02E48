@@ -45,6 +45,7 @@ EEPROM25AA02_Handle EEPROM25AA02_begin(void *pMemory, const size_t numBytes, GPI
 
 uint16_t EEPROM25AA02_spiTransferByte(EEPROM25AA02_Handle handle, const uint16_t data);
 uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle);
+void EEPROM25AA02_writeStatus(EEPROM25AA02_Handle handle, uint8_t value);
 uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr);
 uint8_t EEPROM25AA02_readRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len);
 void EEPROM25AA02_getEUI48(EEPROM25AA02_Handle handle, uint8_t *buffer);

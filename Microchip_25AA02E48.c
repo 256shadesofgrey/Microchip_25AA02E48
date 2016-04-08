@@ -1,10 +1,11 @@
 #include "Microchip_25AA02E48.h"
 
-#define READ_instruction 0b00000011     // 25AA02A's read command
-#define WRITE_instruction 0b00000010    // 25AA02A's write command
-#define READ_STATUS_instruction  0b00000101   
-#define WRITE_STATUS_instruction 0b00000001
-#define WREN 6
+#define READ_instruction 0x03     // 25AA02A's read command
+#define WRITE_instruction 0x02    // 25AA02A's write command
+#define READ_STATUS_instruction  0x05
+#define WRITE_STATUS_instruction 0x01
+#define WREN 0x06
+#define WRDI 0x04
 
 EEPROM25AA02_Handle EEPROM25AA02_init(void *pMemory, const size_t numBytes) {
 	EEPROM25AA02_Handle handle;
@@ -98,6 +99,25 @@ uint8_t EEPROM25AA02_readStatus(EEPROM25AA02_Handle handle) {
 	return result;
 }
 
+// Disable write protection on the whole array: 0x00.
+// Enable  write protection on 0xC0 - 0xFF:     0x04.
+// Enable  write protection on 0x80 - 0xFF:     0x08.
+// Enable  write protection on the whole array: 0x0C.
+void EEPROM25AA02_writeStatus(EEPROM25AA02_Handle handle, uint8_t value) {
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+	uint16_t n = 0;
+
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+
+	EEPROM25AA02_spiTransferByte(handle, WRITE_STATUS_instruction);
+	EEPROM25AA02_spiTransferByte(handle, value);  //Send value to record into register
+
+	for(n = 0; n < 0xf; n++){            //OK
+		asm(" NOP");
+	}
+
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
+}
 
 uint8_t EEPROM25AA02_readRegister(EEPROM25AA02_Handle handle, uint8_t addr) {
 	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
@@ -235,13 +255,9 @@ void EEPROM25AA02_writeRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8
 	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
 	EEPROM25AA02_spiTransferByte(handle, WREN);
 
-//	for(n = 0; n < 0xf; n++){            //OK
-//		asm(" NOP");
-//	}
-//
-//	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
-//
-//	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
+	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
+
+	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
 
 	EEPROM25AA02_spiTransferByte(handle, WRITE_instruction);
 	EEPROM25AA02_spiTransferByte(handle, addr); //Send register location
@@ -249,6 +265,8 @@ void EEPROM25AA02_writeRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8
 		EEPROM25AA02_spiTransferByte(handle, buffer[index]);
 		index++;
 	}
+
+	//EEPROM25AA02_spiTransferByte(handle, WRDI);
 
 	for(n = 0; n < 0xf; n++){            //OK
 		asm(" NOP");
