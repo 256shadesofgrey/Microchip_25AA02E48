@@ -245,7 +245,7 @@ void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_
 	GPIO_setHigh(obj->gpioHandle, obj->gpio_CS);
 }
 
-
+// The following must be true (see datasheet): 0xX0 <= addr; addr+len <= 0xXF.
 void EEPROM25AA02_writeRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
 	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
 	uint16_t n = 0;
