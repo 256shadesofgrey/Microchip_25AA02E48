@@ -247,10 +247,12 @@ void EEPROM25AA02_writeRegister(EEPROM25AA02_Handle handle, uint8_t addr, uint8_
 
 // The following must be true (see datasheet): 0xX0 <= addr; addr+len <= 0xXF.
 void EEPROM25AA02_writeRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8_t *buffer, int len) {
-	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
 	uint16_t n = 0;
-
 	int index = 0;
+	EEPROM25AA02_Obj *obj = (EEPROM25AA02_Obj *)handle;
+
+	const uint8_t *buf = buffer;
+
 	// take the chip select low to select the device:
 	GPIO_setLow(obj->gpioHandle, obj->gpio_CS);
 	EEPROM25AA02_spiTransferByte(handle, WREN);
@@ -262,7 +264,7 @@ void EEPROM25AA02_writeRegisterN(EEPROM25AA02_Handle handle, uint8_t addr, uint8
 	EEPROM25AA02_spiTransferByte(handle, WRITE_instruction);
 	EEPROM25AA02_spiTransferByte(handle, addr); //Send register location
 	while(len > index){
-		EEPROM25AA02_spiTransferByte(handle, buffer[index]);
+		EEPROM25AA02_spiTransferByte(handle, buf[index]);
 		index++;
 	}
 
